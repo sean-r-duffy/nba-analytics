@@ -3,5 +3,5 @@
 ### Aditya, Nick, Pazin, Sean
 
 ## Data Sources
-- stats.nba.com/stats/scoreboard/?GameDate=02/14/2015&LeagueID=00&DayOffset=0
+- https://stathead.com/basketball/
 - https://github.com/swar/nba_api
