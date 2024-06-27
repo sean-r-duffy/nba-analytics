@@ -3,10 +3,14 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 import csv
 import time
+from dotenv import load_dotenv
+import os
 
-#Change to your username and password
-username = ""
-password = ""
+# Load login information
+load_dotenv()
+username = os.getenv('STATHEAD_USERNAME')
+password = os.getenv('STATHEAD_password')
+
 
 driver = webdriver.Chrome()
 try:
