@@ -124,8 +124,8 @@ For detailed usage instructions, please refer to [Geting Started](./docs/docs/ge
 
 
 ## Data Sources
-- https://stathead.com/basketball/
-- https://github.com/swar/nba_api
+- [Stathead Basketball](https://stathead.com/basketball/) - Courtesy of Sports Reference (https://www.sports-reference.com/)
+- [NBA Data API](https://github.com/swar/nba_api)
 
 ## License
 This project is licensed under the terms of the [MIT License](./LICENSE).
