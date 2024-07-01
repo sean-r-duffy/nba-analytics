@@ -1,10 +1,5 @@
-# nba-analytics documentation!
+# NBA Roster Builder Docs
 
 ## Description
 
-A short description of the project.
-
-## Commands
-
-The Makefile contains the central entry points for common tasks related to this project.
-
+Utilizing NBA and combine data to predict player/team performance and improve drafting

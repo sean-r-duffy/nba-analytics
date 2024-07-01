@@ -1,4 +1,6 @@
-site_name: nba-analytics
-# 
+site_name: NBA Roster Builder
 site_author: Nicholas Cantalupa, Sean Duffy, Aditya Saxena, Pazin Tarasansombat
-# 
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+theme: readthedocs
