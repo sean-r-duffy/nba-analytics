@@ -9,14 +9,12 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from nba_api.stats.endpoints import playercareerstats, commonplayerinfo, cumestatsplayer, playergamelog
-from nba_api.stats.endpoints import draftcombinestats, draftcombinedrillresults, draftcombineplayeranthro, draftcombinespotshooting, draftcombinenonstationaryshooting, drafthistory
-from nba_api.stats.static import players
+load_dotenv()
+from kaggle.api.kaggle_api_extended import KaggleApi
 
 
+# TODO: Fix all relative paths
 def scrape_stathead_players():
-    # Load login information
-    load_dotenv()
     username = os.getenv('STATHEAD_USERNAME')
     password = os.getenv('STATHEAD_PASSWORD')
 
@@ -174,6 +172,19 @@ def scrape_combine():
 
     driver.quit()
     df.to_csv('../../data/external/NBA_combine_stats_2000-2024.csv', index=False)
+
+
+def download_kaggle_sets(directory=None):
+    kaggle_api = KaggleApi()
+    kaggle_api.authenticate()
+
+    if directory is None:
+        directory = '../../data/external'
+
+    dataset_1 = 'wyattowalsh/basketball'
+    dataset_2 = 'sumitrodatta/nba-aba-baa-stats'
+    kaggle_api.dataset_download_files(dataset_1, path=f'{directory}/kaggle1', unzip=True)
+    kaggle_api.dataset_download_files(dataset_2, path=f'{directory}/kaggle2', unzip=True)
 
 
 if __name__ == '__main__':

@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 
 
+# TODO: Fix all relative paths
 def clean_team_stats(df=None):
     if df is None:
         df = pd.read_csv('../../data/external/NBA_team_stats_1979-2024.csv')
@@ -56,3 +57,34 @@ def clean_combine_data(df=None):
     df.to_csv('../../data/interim/combine_stats_trimmed.csv')
 
     return df
+
+
+def process_player_data():
+    player_shooting_df = pd.read_csv('../../data/external/kaggle2/Player Shooting.csv')
+    advanced_df = pd.read_csv('../../data/external/kaggle2/Advanced.csv')
+    player_per100poss_df = pd.read_csv('../../data/external/kaggle2/Per 100 Poss.csv')
+    player_info_df = pd.read_csv('../../data/external/kaggle1/csv/common_player_info.csv')
+
+    df = pd.merge(player_per100poss_df, player_shooting_df,
+                  on='seas_id',
+                  how='inner',
+                  suffixes=('', '_right'))
+    df = pd.merge(df, advanced_df,
+                  on='seas_id',
+                  how='inner',
+                  suffixes=('', '_right'))
+    df = pd.merge(df, player_info_df,
+                  left_on='player',
+                  right_on='display_first_last',
+                  how='inner',
+                  suffixes=('', '_right'))
+
+    df = df.loc[:, ~df.columns.str.endswith('_right')]
+
+    df.to_csv('../../data/interim/player_data_aggregated.csv')
+
+
+if __name__ == '__main__':
+    clean_team_stats()
+    clean_combine_data()
+    process_player_data()
