@@ -176,14 +176,6 @@ def scrape_combine():
     df.to_csv('../../data/external/NBA_combine_stats_2000-2024.csv', index=False)
 
 
-def nba_api_players():
-    all_players = pd.json_normalize(players.get_players())
-    career_stats_df = pd.DataFrame()
-    for player_id in all_players['id'].to_list():
-        career_stats_df = pd.concat([career_stats_df,
-                                     playercareerstats.PlayerCareerStats(player_id=player_id).get_data_frames()[0]])
-
-
 if __name__ == '__main__':
     scrape_stathead_players()
     scrape_stathead_teams()
