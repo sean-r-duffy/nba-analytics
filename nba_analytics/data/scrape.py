@@ -9,6 +9,9 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from nba_api.stats.endpoints import playercareerstats, commonplayerinfo, cumestatsplayer, playergamelog
+from nba_api.stats.endpoints import draftcombinestats, draftcombinedrillresults, draftcombineplayeranthro, draftcombinespotshooting, draftcombinenonstationaryshooting, drafthistory
+from nba_api.stats.static import players
 
 
 def scrape_stathead_players():
@@ -171,6 +174,14 @@ def scrape_combine():
 
     driver.quit()
     df.to_csv('../../data/external/NBA_combine_stats_2000-2024.csv', index=False)
+
+
+def nba_api_players():
+    all_players = pd.json_normalize(players.get_players())
+    career_stats_df = pd.DataFrame()
+    for player_id in all_players['id'].to_list():
+        career_stats_df = pd.concat([career_stats_df,
+                                     playercareerstats.PlayerCareerStats(player_id=player_id).get_data_frames()[0]])
 
 
 if __name__ == '__main__':
