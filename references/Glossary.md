@@ -1,6 +1,6 @@
 Glossary
 
-2P - 2-Point Field Goals
+x2P - 2-Point Field Goals
 
 2P% - 2-Point Field Goal Percentage; the formula is 2P / 2PA.
 
