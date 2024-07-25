@@ -19,7 +19,7 @@ st.session_state.df = rookie_stats
 
 def calculate_top_players(selected_team:str) -> dict:
     # fill with model
-    return {"Player": ["Baylor Scheierman", "Donovan Clingan", "Jamal Shead", "Kyle Filipowski"], "Win%":[.89, .78, .67, .45]}
+    return {"Player": ["Baylor Scheierman", "Donovan Clingan", "Zach Edey", "Kyle Filipowski"], "Win%":[.89, .78, .67, .45]}
 
 def get_allstar_comps(player_list:list) -> list:
     # Open All Star and Rookie Data
@@ -56,13 +56,20 @@ def update_model():
 @st.experimental_fragment
 def display_stats():
     st.subheader("Available Players")
+    
     drafted = st.selectbox("Select Drafted Player", st.session_state.rookie_names, key=15)
     if st.session_state.i <= 1:
         print(6)
         st.session_state.i += 1
-    if(st.button('Show Stats')):
+    if(st.button('Remove Drafted Player')):
         if st.session_state.i > 1:
             print(5)
             st.session_state.df = st.session_state.df.drop(drafted)
-            # st.session_state.rookie_names = list(st.session_state.rookie_names).remove(drafted)
+            updated_names = list(st.session_state.rookie_names)
+            updated_names.remove(drafted)
+            st.session_state.rookie_names = updated_names
     st.dataframe(st.session_state.df)
+
+st.header("NBA Draft Companion")
+update_model()
+display_stats()
