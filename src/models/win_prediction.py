@@ -31,7 +31,76 @@ def return_roster_stats(player_df, team_df, players, team, years):
     pass
 
 
-def agg_by_pos(player_df, team_df, save_file=False, use_pca=False, pca_model_path=None, output_dir=None):
+def weighted_avg(group, weight_col, stat_cols):
+    d = {}
+    for col in stat_cols:
+        d[col] = (group[col] * group[weight_col]).sum() / group[weight_col].sum()
+    d[weight_col] = group[weight_col].sum()
+    return pd.Series(d)
+
+def weighted_avg_2(group, weight_col, stat_cols):
+    d = {}
+    for col in stat_cols:
+        d[col] = (group[col] * group[weight_col]).sum() / group[weight_col].sum()
+    return pd.Series(d)
+
+def agg_by_pos(team_stats, player_stats):
+    player_metrics = ["fg_per_100_poss", "fga_per_100_poss", "x3p_per_100_poss", "x3pa_per_100_poss", "x2p_per_100_poss", "x2pa_per_100_poss", "ft_per_100_poss", "fta_per_100_poss", "orb_per_100_poss", "drb_per_100_poss", "trb_per_100_poss", "ast_per_100_poss", "stl_per_100_poss", "blk_per_100_poss", "tov_per_100_poss", "pf_per_100_poss", "pts_per_100_poss", "o_rtg", "d_rtg", "avg_dist_fga", "percent_fga_from_x2p_range", "percent_fga_from_x0_3_range", "percent_fga_from_x3_10_range", "percent_fga_from_x10_16_range", "percent_fga_from_x16_3p_range", "percent_fga_from_x3p_range", "fg_percent_from_x2p_range", "fg_percent_from_x0_3_range", "fg_percent_from_x3_10_range", "fg_percent_from_x10_16_range", "fg_percent_from_x16_3p_range", "fg_percent_from_x3p_range", "percent_assisted_x2p_fg", "percent_assisted_x3p_fg", "percent_dunks_of_fga", "num_of_dunks", "percent_corner_3s_of_3pa", "corner_3_point_percent", "num_heaves_attempted", "num_heaves_made", "per", "x3p_ar", "f_tr", "orb_percent", "drb_percent", "trb_percent", "ast_percent", "stl_percent", "blk_percent", "tov_percent", "usg_percent", "ows", "dws", "ws", "ws_48", "obpm", "dbpm", "bpm", "vorp"]
+
+    result = player_stats.groupby(['season','player_id']).apply(weighted_avg, weight_col='mp', stat_cols=player_metrics).reset_index()
+    result['season'] = result['season'] + 1
+    result.drop(columns=['mp'],inplace=True)
+    result[(result['season'] == 2023) & (result['player_id'] == 5026)]
+
+    player_stats_adjusted = player_stats.copy()
+    player_stats_adjusted['full_season'] = player_stats_adjusted['season'].apply(lambda x: f"{x-1}-{str(x)[-2:]}")
+    player_stats_adjusted = player_stats_adjusted[player_stats_adjusted['season'] != 1997]
+
+    merged_df = pd.merge(player_stats_adjusted, result, on=['season', 'player_id'], suffixes=('', '_df2'), how='left')
+
+    for field in player_metrics:
+        merged_df[field] = merged_df[field + '_df2'].combine_first(merged_df[field])
+
+    merged_df.drop(columns=[field + '_df2' for field in player_metrics], inplace=True)
+
+    merged_df.to_csv('../data/interim/player_stats_year_adjusted.csv', index=False)
+
+    df = pd.read_csv('../data/interim/player_stats_year_adjusted.csv')
+
+    results = []
+    position_columns = ['pos_PG', 'pos_SG', 'pos_PF', 'pos_SF', 'pos_C']
+    stat_columns = player_metrics
+
+    # Loop through each position
+    for pos in position_columns:
+        # Filter the DataFrame for players playing the current position
+        df_pos = df[df[pos] == 1]
+    
+        # Group by team and season, and apply the weighted average function
+        grouped = df_pos.groupby(['full_season', 'tm']).apply(weighted_avg_2, weight_col='mp', stat_cols=stat_columns).reset_index()
+    
+        # Add position prefix to the stat columns
+        grouped = grouped.rename(columns={col: f'{pos}_{col}' for col in stat_columns})
+    
+        # Append the result to the results list
+        results.append(grouped)
+    
+    # Start with the first result as the base DataFrame
+    final_df = results[0]
+
+    # Merge the rest of the results into the base DataFrame
+    for df_pos in results[1:]:
+        final_df = final_df.merge(df_pos, on=['full_season', 'tm'], how='outer')
+
+    final_df = final_df.merge(team_stats, left_on=['full_season', 'tm'], right_on=['Season', 'Team'], how='left')
+    final_df = final_df.dropna(subset=['W/L%'])
+    final_df = final_df.dropna()
+
+    final_df.to_csv('../data/interim/NBA_team_player_stats_Weight_Average.csv', index=False)
+
+    return final_df
+
+"""def agg_by_pos(player_df, team_df, save_file=False, use_pca=False, pca_model_path=None, output_dir=None):
     df, team_df = get_df(player_df, team_df)
 
     # Columns not containing player stats
@@ -103,4 +172,4 @@ def agg_by_pos(player_df, team_df, save_file=False, use_pca=False, pca_model_pat
         assert isinstance(output_dir, str), 'Must provide directory in which to save output .csv file'
         df.to_csv(f'{output_dir}/roster_win%.csv')
 
-    return df
+    return df"""
