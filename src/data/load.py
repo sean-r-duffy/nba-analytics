@@ -13,8 +13,7 @@ load_dotenv()
 from kaggle.api.kaggle_api_extended import KaggleApi
 
 
-# TODO: Fix all relative paths
-def scrape_stathead_players():
+def scrape_stathead_players(output_dir):
     username = os.getenv('STATHEAD_USERNAME')
     password = os.getenv('STATHEAD_PASSWORD')
 
@@ -54,7 +53,7 @@ def scrape_stathead_players():
                     lines = csv_data.split('\n')
                     rows = [line.split(',') for line in lines]
                     # Optional, change as needed
-                    filename = '../../data/external/NBA_player_stats_1979-2024.csv'
+                    filename = f'{output_dir}/NBA_player_stats_1979-2024.csv'
                     if i == 0:
                         rows = rows[4:]
                     else:
@@ -74,7 +73,7 @@ def scrape_stathead_players():
         driver.quit()
 
 
-def scrape_stathead_teams():
+def scrape_stathead_teams(output_dir):
     # Load login information
     load_dotenv()
     username = os.getenv('STATHEAD_USERNAME')
@@ -116,7 +115,7 @@ def scrape_stathead_teams():
                     lines = csv_data.split('\n')
                     rows = [line.split(',') for line in lines]
                     # Optional, change as needed
-                    filename = '../../data/external/NBA_team_stats_1979-2024.csv'
+                    filename = f'{output_dir}/NBA_team_stats_1979-2024.csv'
                     if i == 0:
                         rows = rows[4:]
                     else:
@@ -136,7 +135,7 @@ def scrape_stathead_teams():
         driver.quit()
 
 
-def scrape_combine():
+def scrape_combine(output_dir):
     years = ['2000-01', '2001-02', '2002-03', '2003-04', '2004-05', '2005-06',
              '2006-07', '2007-08', '2008-09', '2009-10', '2010-11', '2011-12',
              '2012-13', '2013-14', '2014-15', '2015-16', '2016-17', '2017-18',
@@ -171,23 +170,22 @@ def scrape_combine():
         time.sleep(1)
 
     driver.quit()
-    df.to_csv('../../data/external/NBA_combine_stats_2000-2024.csv', index=False)
+    df.to_csv(f'{output_dir}/NBA_combine_stats_2000-2024.csv', index=False)
 
 
-def download_kaggle_sets(directory=None):
+def download_kaggle_sets(output_dir):
     kaggle_api = KaggleApi()
     kaggle_api.authenticate()
 
-    if directory is None:
-        directory = '../../data/external'
-
     dataset_1 = 'wyattowalsh/basketball'
     dataset_2 = 'sumitrodatta/nba-aba-baa-stats'
-    kaggle_api.dataset_download_files(dataset_1, path=f'{directory}/kaggle1', unzip=True)
-    kaggle_api.dataset_download_files(dataset_2, path=f'{directory}/kaggle2', unzip=True)
+    kaggle_api.dataset_download_files(dataset_1, path=f'{output_dir}/kaggle1', unzip=True)
+    kaggle_api.dataset_download_files(dataset_2, path=f'{output_dir}/kaggle2', unzip=True)
 
 
 if __name__ == '__main__':
-    scrape_stathead_players()
-    scrape_stathead_teams()
-    scrape_combine()
+    directory = 'data/external'
+    scrape_stathead_players(directory)
+    scrape_stathead_teams(directory)
+    scrape_combine(directory)
+    download_kaggle_sets(directory)

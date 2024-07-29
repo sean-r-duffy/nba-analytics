@@ -13,7 +13,7 @@ teams = ["Atlanta Hawks", "Boston Celtics", "Brooklyn Nets", "Charlotte Hornets"
              "Portland Trail Blazers", "Sacramento Kings", "San Antonio Spurs", "Toronto Raptors", "Utah Jazz", "Washington Wizards"]
 
 # Load Rookie Stats for Display
-rookie_stats = pd.read_csv("data/processed/rookie_stats_raw.csv", index_col="Player")
+rookie_stats = pd.read_csv("../../data/processed/rookie_stats_raw.csv", index_col="Player")
 st.session_state.rookie_names = list(rookie_stats.index)
 st.session_state.df = rookie_stats
 
@@ -23,10 +23,10 @@ def calculate_top_players(selected_team:str) -> dict:
 
 def get_allstar_comps(player_list:list) -> list:
     # Open All Star and Rookie Data
-    with open('data/processed/all_stars_scaled.csv', 'r') as f1:
+    with open('../../data/processed/all_stars_scaled.csv', 'r') as f1:
         # cant use player name as index since there are mulitples for player seasons
         all_stars_scaled = pd.read_csv(f1)
-    with open('data/processed/rookie_stats_scaled.csv', 'r') as f2:
+    with open('../../data/processed/rookie_stats_scaled.csv', 'r') as f2:
         rookies_scaled = pd.read_csv(f2, index_col= "Player")
     # Fit KNN Model
     knn = NearestNeighbors(n_neighbors=1)
@@ -43,7 +43,7 @@ def get_allstar_comps(player_list:list) -> list:
         player_comps.append(as_name)
     return player_comps
 
-@st.experimental_fragment
+@st.fragment
 def update_model():
     team = st.selectbox("Select your Team", teams, key = 42)
     if(st.button('Enter')):
@@ -53,7 +53,7 @@ def update_model():
         top_players["All Star Comparison"] = player_comparisons
         st.dataframe(top_players, hide_index = True)
 
-@st.experimental_fragment
+@st.fragment
 def display_stats():
     st.subheader("Available Players")
     
