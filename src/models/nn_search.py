@@ -4,38 +4,6 @@ from sklearn.impute import KNNImputer
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import NearestNeighbors
 
-# TODO Fix paths
-# TODO Change so that players in same draft class will not be returned
-def combine_search(player_idx, n=5, impute='knn', all_nba=False):
-    assert impute == 'mean' or impute == 'knn'
-
-    combine_df = pd.read_csv('../data/interim/combine_stats_trimmed.csv')
-
-    if all_nba:
-        df_all_nba = pd.read_csv('../data/all_nba_expanded.csv')
-        all_nba_players = set(df_all_nba['Player Name'])
-        combine_df = combine_df[(combine_df['player'].isin(all_nba_players)) | (combine_df['year'] == '2024-25')]
-
-    num_df = combine_df.select_dtypes(include=['number'])
-    num_cols = num_df.columns.tolist()
-
-    if impute == 'mean':
-        column_means = combine_df[num_cols].mean()
-        combine_df[num_cols] = combine_df[num_cols].fillna(column_means)
-    else:
-        imputer = KNNImputer(n_neighbors=5)
-        combine_df[num_cols] = imputer.fit_transform(combine_df[num_cols])
-
-    scaler = StandardScaler()
-    combine_df[num_cols] = scaler.fit_transform(combine_df[num_cols])
-
-    knn = NearestNeighbors(n_neighbors=n + 1)
-    knn.fit(combine_df[num_cols])
-
-    distances, indices = knn.kneighbors([combine_df.iloc[player_idx][num_cols]])
-
-    return combine_df.iloc[indices.tolist()[0]]
-
 
 # TODO Fix: Returning NaN when players can't be found
 def get_nba_projection(players, years):
@@ -67,3 +35,26 @@ def get_nba_projection(players, years):
         df = pd.concat([df, stats_df])
 
     return df
+
+
+def get_allstar_comps(player_list: list) -> list:
+    # Open All Star and Rookie Data
+    with open('../../data/processed/all_stars_scaled.csv', 'r') as f1:
+        # cant use player name as index since there are mulitples for player seasons
+        all_stars_scaled = pd.read_csv(f1)
+    with open('../../data/processed/rookie_stats_scaled.csv', 'r') as f2:
+        rookies_scaled = pd.read_csv(f2, index_col="Player")
+    # Fit KNN Model
+    knn = NearestNeighbors(n_neighbors=1)
+    all_stars_scaled_n = all_stars_scaled.iloc[:, 1:]
+    knn.fit(all_stars_scaled_n.values)
+    # Run KNN on All Rookie Suggestions
+    player_comps = []
+    for rookie in player_list:
+        player_data = rookies_scaled.loc[rookie].to_numpy().reshape(1, -1)
+        dists, idxs = knn.kneighbors(player_data)
+        idxs = idxs[0].tolist()
+        i = idxs[0]
+        as_name = list(all_stars_scaled["Player"])[i]
+        player_comps.append(as_name)
+    return player_comps
