@@ -26,8 +26,6 @@ def get_df(player_df, team_df):
 
 
 def return_roster_stats(player_df, team_df, players, team, years):
-    player_df, team_df = get_df(player_df, team_df)
-    player_df = get_nba_projection(players, years)
     pass
 
 

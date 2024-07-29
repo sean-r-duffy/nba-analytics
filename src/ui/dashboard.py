@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-
 from src.models.nn_search import get_allstar_comps
 
 print(st.session_state)
