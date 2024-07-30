@@ -5,7 +5,7 @@ sys.path.append('../../../nba-analytics')
 from src.models.nn_search import get_allstar_comps
 from src.models.win_prediction import calculate_top_players_ui
 
-print(st.session_state)
+print("app start")
 st.session_state.i = 1
 
 # All NBA Teams
@@ -22,7 +22,8 @@ teams = ["Atlanta Hawks", "Boston Celtics", "Brooklyn Nets", "Charlotte Hornets"
 
 # Load Rookie Stats for Display
 rookie_stats = pd.read_csv("../../data/processed/rookie_stats_raw.csv", index_col="Player")
-st.session_state.rookie_names = list(rookie_stats.index)
+rookie_names = list(rookie_stats.index)
+st.session_state.rookie_names = rookie_names
 st.session_state.rookies_df = rookie_stats
 
 
@@ -30,8 +31,9 @@ st.session_state.rookies_df = rookie_stats
 def update_model():
     team = st.selectbox("Select your Team", teams, key=42)
     if st.button('Enter'):
+        print(f"update table for {team}")
         st.subheader(f"Best Available Players for the {team}")
-        available_rookies = list(st.session_state.rookies_df["Player"])
+        available_rookies = list(st.session_state.rookies_df.index)
         top_players = pd.DataFrame(calculate_top_players_ui(team, available_rookies))
         player_comparisons = get_allstar_comps(list(top_players["Player"]))
         top_players["All Star Comparison"] = player_comparisons
@@ -41,21 +43,19 @@ def update_model():
 @st.experimental_fragment
 def display_stats():
     st.subheader("Available Players")
-
     drafted = st.selectbox("Select Drafted Player", st.session_state.rookie_names, key=15)
     if st.session_state.i <= 1:
-        print(6)
         st.session_state.i += 1
     if st.button('Remove Drafted Player'):
         if st.session_state.i > 1:
-            print(5)
             st.session_state.rookies_df = st.session_state.rookies_df.drop(drafted)
             updated_names = list(st.session_state.rookie_names)
             updated_names.remove(drafted)
             st.session_state.rookie_names = updated_names
     st.dataframe(st.session_state.rookies_df)
 
-
+st.logo("https://cdn.freebiesupply.com/images/large/2x/nba-logo-transparent.png", link="https://www.nba.com")
+st.image("https://cdn.vox-cdn.com/thumbor/FG1AD14Ac5Dhk45wzIc90cExceI=/1400x1050/filters:format(jpeg)/cdn.vox-cdn.com/uploads/chorus_asset/file/24825271/Early2024BigBoard_Getty_Ringer.jpg")
 st.header("NBA Draft Companion")
 update_model()
 display_stats()
