@@ -1,6 +1,10 @@
 import streamlit as st
 import pandas as pd
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 from src.models.nn_search import get_allstar_comps
+from src.models.win_prediction import calculate_top_players_ui
 
 print(st.session_state)
 st.session_state.i = 1
@@ -20,27 +24,22 @@ teams = ["Atlanta Hawks", "Boston Celtics", "Brooklyn Nets", "Charlotte Hornets"
 # Load Rookie Stats for Display
 rookie_stats = pd.read_csv("../../data/processed/rookie_stats_raw.csv", index_col="Player")
 st.session_state.rookie_names = list(rookie_stats.index)
-st.session_state.df = rookie_stats
+st.session_state.rookies_df = rookie_stats
 
 
-def calculate_top_players(selected_team: str) -> dict:
-    # fill with model
-    return {"Player": ["Baylor Scheierman", "Donovan Clingan", "Zach Edey", "Kyle Filipowski"],
-            "Win%": [.89, .78, .67, .45]}
-
-
-@st.fragment
+@st.experimental_fragment
 def update_model():
     team = st.selectbox("Select your Team", teams, key=42)
     if (st.button('Enter')):
-        st.subheader(f"Best Available for your the {team}")
-        top_players = pd.DataFrame(calculate_top_players(team))
+        st.subheader(f"Best Available Players for the {team}")
+        available_rookies = list(st.session_state.rookies_df["Player"])
+        top_players = pd.DataFrame(calculate_top_players_ui(team, available_rookies))
         player_comparisons = get_allstar_comps(list(top_players["Player"]))
         top_players["All Star Comparison"] = player_comparisons
         st.dataframe(top_players, hide_index=True)
 
 
-@st.fragment
+@st.experimental_fragment
 def display_stats():
     st.subheader("Available Players")
 
@@ -51,11 +50,11 @@ def display_stats():
     if (st.button('Remove Drafted Player')):
         if st.session_state.i > 1:
             print(5)
-            st.session_state.df = st.session_state.df.drop(drafted)
+            st.session_state.rookies_df = st.session_state.rookies_df.drop(drafted)
             updated_names = list(st.session_state.rookie_names)
             updated_names.remove(drafted)
             st.session_state.rookie_names = updated_names
-    st.dataframe(st.session_state.df)
+    st.dataframe(st.session_state.rookies_df)
 
 
 st.header("NBA Draft Companion")

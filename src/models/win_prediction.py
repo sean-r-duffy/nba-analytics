@@ -4,6 +4,10 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from src.models.nn_search import get_nba_projection
 
+def calculate_top_players_ui(selected_team: str, available_players:list) -> dict:
+    # fill with model
+    return {"Player": ["Baylor Scheierman", "Donovan Clingan", "Zach Edey", "Kyle Filipowski"],
+            "Win%": [.89, .78, .67, .45]}
 
 def get_df(player_df, team_df):
     # Collect player df
