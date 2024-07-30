@@ -4,6 +4,8 @@ import sys
 sys.path.append('../../../nba-analytics')
 from src.models.nn_search import get_allstar_comps
 from src.models.win_prediction import calculate_top_players_ui
+from src.ui.graphics.radar_plots import make_radar_plot
+
 
 print("app start")
 st.session_state.i = 1
@@ -23,6 +25,7 @@ teams = ["Atlanta Hawks", "Boston Celtics", "Brooklyn Nets", "Charlotte Hornets"
 # Load Rookie Stats for Display
 rookie_stats = pd.read_csv("../../data/processed/rookie_stats_raw.csv", index_col="Player")
 rookie_names = list(rookie_stats.index)
+st.session_state.all_rookie_names = rookie_names
 st.session_state.rookie_names = rookie_names
 st.session_state.rookies_df = rookie_stats
 
@@ -54,8 +57,18 @@ def display_stats():
             st.session_state.rookie_names = updated_names
     st.dataframe(st.session_state.rookies_df)
 
+@st.experimental_fragment
+def display_plot():
+    st.subheader("Player Radar Plot")
+    player_plot = st.selectbox("Select Player", st.session_state.all_rookie_names, key=25)
+    if st.button("Plot Stats"):
+        ca, c2, c3 = st.columns([1,2,1])
+        with c2:
+            st.pyplot(make_radar_plot(player_plot))
+
 st.logo("https://cdn.freebiesupply.com/images/large/2x/nba-logo-transparent.png", link="https://www.nba.com")
-st.image("https://cdn.vox-cdn.com/thumbor/FG1AD14Ac5Dhk45wzIc90cExceI=/1400x1050/filters:format(jpeg)/cdn.vox-cdn.com/uploads/chorus_asset/file/24825271/Early2024BigBoard_Getty_Ringer.jpg")
+st.image("https://on3static.com/uploads/dev/assets/cms/2024/03/12155413/NBADraft-AFI-1.png")
 st.header("NBA Draft Companion")
 update_model()
 display_stats()
+display_plot()
