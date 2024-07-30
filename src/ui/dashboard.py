@@ -1,8 +1,7 @@
 import streamlit as st
 import pandas as pd
 import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+sys.path.append('../../../nba-analytics')
 from src.models.nn_search import get_allstar_comps
 from src.models.win_prediction import calculate_top_players_ui
 
@@ -30,7 +29,7 @@ st.session_state.rookies_df = rookie_stats
 @st.experimental_fragment
 def update_model():
     team = st.selectbox("Select your Team", teams, key=42)
-    if (st.button('Enter')):
+    if st.button('Enter'):
         st.subheader(f"Best Available Players for the {team}")
         available_rookies = list(st.session_state.rookies_df["Player"])
         top_players = pd.DataFrame(calculate_top_players_ui(team, available_rookies))
@@ -47,7 +46,7 @@ def display_stats():
     if st.session_state.i <= 1:
         print(6)
         st.session_state.i += 1
-    if (st.button('Remove Drafted Player')):
+    if st.button('Remove Drafted Player'):
         if st.session_state.i > 1:
             print(5)
             st.session_state.rookies_df = st.session_state.rookies_df.drop(drafted)
