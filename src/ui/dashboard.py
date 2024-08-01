@@ -56,6 +56,7 @@ def display_stats():
             updated_names.remove(drafted)
             st.session_state.rookie_names = updated_names
     st.dataframe(st.session_state.rookies_df)
+    st.markdown("_Table shows per game stats_")
 
 @st.experimental_fragment
 def display_plot():
@@ -66,6 +67,7 @@ def display_plot():
         with c2:
             st.pyplot(make_radar_plot(player_plot))
 
+st.set_page_config(page_title="NBA Draft Companion")
 st.logo("https://cdn.freebiesupply.com/images/large/2x/nba-logo-transparent.png", link="https://www.nba.com")
 st.image("https://on3static.com/uploads/dev/assets/cms/2024/03/12155413/NBADraft-AFI-1.png")
 st.header("NBA Draft Companion")
