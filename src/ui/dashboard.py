@@ -1,11 +1,11 @@
 import streamlit as st
 import pandas as pd
 import sys
+
 sys.path.append('../../../nba-analytics')
 from src.models.nn_search import get_allstar_comps
 from src.models.win_prediction import calculate_top_players_ui
 from src.ui.graphics.radar_plots import make_radar_plot
-
 
 print("app start")
 st.session_state.i = 1
@@ -30,7 +30,7 @@ st.session_state.rookie_names = rookie_names
 st.session_state.rookies_df = rookie_stats
 
 
-@st.experimental_fragment
+@st.fragment
 def update_model():
     team = st.selectbox("Select your Team", teams, key=42)
     if st.button('Enter'):
@@ -38,12 +38,13 @@ def update_model():
         st.subheader(f"Best Available Players for the {team}")
         available_rookies = list(st.session_state.rookies_df.index)
         top_players = pd.DataFrame(calculate_top_players_ui(team, available_rookies))
-        player_comparisons = get_allstar_comps(list(top_players["Player"]))
+        print(top_players.head())
+        player_comparisons = get_allstar_comps(list(top_players["player"]))
         top_players["All Star Comparison"] = player_comparisons
         st.dataframe(top_players, hide_index=True)
 
 
-@st.experimental_fragment
+@st.fragment
 def display_stats():
     st.subheader("Available Players")
     drafted = st.selectbox("Select Drafted Player", st.session_state.rookie_names, key=15)
@@ -58,14 +59,16 @@ def display_stats():
     st.dataframe(st.session_state.rookies_df)
     st.markdown("_Table shows per game stats_")
 
-@st.experimental_fragment
+
+@st.fragment
 def display_plot():
     st.subheader("Player Radar Plot")
     player_plot = st.selectbox("Select Player", st.session_state.all_rookie_names, key=25)
     if st.button("Plot Stats"):
-        ca, c2, c3 = st.columns([1,2,1])
+        ca, c2, c3 = st.columns([1, 2, 1])
         with c2:
             st.pyplot(make_radar_plot(player_plot))
+
 
 st.set_page_config(page_title="NBA Draft Companion")
 st.logo("https://cdn.freebiesupply.com/images/large/2x/nba-logo-transparent.png", link="https://www.nba.com")

@@ -77,9 +77,9 @@ def agg_by_pos(team_stats, player_stats):
 
     merged_df.drop(columns=[field + '_df2' for field in player_metrics], inplace=True)
 
-    merged_df.to_csv('../data/interim/player_stats_year_adjusted.csv', index=False)
+    merged_df.to_csv('../../data/interim/player_stats_year_adjusted.csv', index=False)
 
-    df = pd.read_csv('../data/interim/player_stats_year_adjusted.csv')
+    df = pd.read_csv('../../data/interim/player_stats_year_adjusted.csv')
 
     results = []
     position_columns = ['pos_PG', 'pos_SG', 'pos_PF', 'pos_SF', 'pos_C']
@@ -111,7 +111,7 @@ def agg_by_pos(team_stats, player_stats):
     final_df = final_df.dropna(subset=['W/L%'])
     final_df = final_df.dropna()
 
-    final_df.to_csv('../data/interim/NBA_team_player_stats_Weight_Average.csv', index=False)
+    final_df.to_csv('../../data/interim/NBA_team_player_stats_Weight_Average.csv', index=False)
 
     return final_df
 
@@ -183,9 +183,9 @@ def create_potential_rosters(player_projections_df: pd.DataFrame, last_season_df
 
 
 def predict_win_percentages(potential_rosters_df: pd.DataFrame, model_path):
-    df = potential_rosters_df.drop(columns=['full_season', 'tm', 'season', 'player'])
+    df = potential_rosters_df.drop(columns=['full_season', 'tm', 'Season'])
     model = joblib.load(model_path)
-    win_pred = model.predict(df)
+    win_pred = model.predict(df.drop(columns=['player']))
     df['win%'] = win_pred
 
     return df[['player', 'win%']]
@@ -199,8 +199,8 @@ def calculate_top_players_ui(selected_team: str, available_players: list) -> dic
     team = mappings[selected_team]
 
     # Loading dataframes
-    projections_df = pd.read_csv('../data/processed/rookie_projection_stats.csv')
-    last_season_df = pd.read_csv('../data/interim/NBA_team_player_stats_WA_current_year.csv')
+    projections_df = pd.read_csv('../../data/processed/rookie_projection_stats.csv')
+    last_season_df = pd.read_csv('../../data/interim/NBA_team_player_stats_WA_current_year.csv')
 
     # Filtering for available players
     projections_df = projections_df[projections_df['player'].isin(available_players)]
@@ -210,7 +210,7 @@ def calculate_top_players_ui(selected_team: str, available_players: list) -> dic
     predictions = predict_win_percentages(potential_rosters_df, '../../models/win_prediction.pkl')
 
     # Convert to dictionary
-    predictions = predictions.groupby(by='player').max().sort_values('win%', ascending=False)
+    predictions = predictions.groupby(by='player').max().sort_values('win%', ascending=False).reset_index()
     predictions = predictions.to_dict()
 
     return predictions
