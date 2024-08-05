@@ -210,7 +210,7 @@ def calculate_top_players_ui(selected_team: str, available_players: list) -> dic
     predictions = predict_win_percentages(potential_rosters_df, '../../models/win_prediction.pkl')
 
     # Convert to dictionary
-    predictions = predictions.groupby(by='player').max().sort_values('win%', ascending=False).reset_index()
+    predictions = predictions.groupby(by='player').max().sort_values('win%', ascending=False).reset_index().head(10)
     predictions = predictions.to_dict()
 
     return predictions
