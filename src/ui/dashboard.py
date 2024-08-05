@@ -38,7 +38,6 @@ def update_model():
         st.subheader(f"Best Available Players for the {team}")
         available_rookies = list(st.session_state.rookies_df.index)
         top_players = pd.DataFrame(calculate_top_players_ui(team, available_rookies))
-        print(top_players.head())
         player_comparisons = get_allstar_comps(list(top_players["player"]))
         top_players["All Star Comparison"] = player_comparisons
         st.dataframe(top_players, hide_index=True)
