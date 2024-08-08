@@ -1,39 +1,116 @@
 import pandas as pd
 import numpy as np
+from typing import Union
+from src.data.load import get_df
 
 
-def clean_team_stats(df, output_dir):
-    if isinstance(df, pd.DataFrame):
-        pass
-    elif isinstance(df, str):
-        df = pd.read_csv(df)
-    else:
-        raise Exception('df must be a pandas DataFrame object or the path of a .csv')
+def clean_team_stats(team_df: Union[pd.DataFrame, str],
+                     output_dir: str,
+                     filename: str = 'team_stats_clean.csv') -> pd.DataFrame:
+    """
+    Cleans raw stathead team data, writes to CSV, and returns cleaned DataFrame
 
+    :param team_df: Path of CSV or DataFrame object of raw stathead team data
+    :param output_dir: Directory in which to save CSV
+    :param filename: Name of CSV file to save data to
+    :return: Cleaned dataframe
+    """
+
+    # Get df if CSV was given
+    df = get_df(team_df)
+
+    # Establish headers and drop first column and row (unnecessary header and index)
     df.columns = df.iloc[0]
     df = df[1:]
     df = df.reset_index(drop=True)
+
+    # Drop duplicate rows
     df = df.loc[:, ~df.columns.duplicated()]
+
+    # Remove rows with invalid season and format Season column as int
     df = df[df['Season'] != 'Season']
     df['Season'] = df['Season'].map(lambda x: int(x[:4]))
+
+    # Drop unnecessary columns
     df = df.drop(columns=['Rk'])
+
+    # Convert all appropriate columns to numeric datatype
     df = df.apply(lambda col: pd.to_numeric(col, errors='coerce') if col.name != 'Team' else col)
     for column in ['MP', 'FG', 'FGA', '2P', '2PA', '3P', '3PA', 'FT', 'FTA', 'ORB', 'DRB', 'TRB', 'AST', 'STL', 'BLK',
                    'TOV', 'PF', 'PTS']:
         df[f'{column}/G'] = df[column] / df['G']
         df = df.drop(columns=[column])
+
+    # Rename columns for clarity
     df = df.rename(columns={'W/L%': 'W%'})
-    df.to_csv(f'{output_dir}/team_stats_clean.csv')
+
+    # Write results
+    df.to_csv(f'{output_dir}/{filename}')
 
     return df
 
 
-def process_player_data(kaggle1_dir, kaggle2_dir, output_dir):
-    player_shooting_df = pd.read_csv(f'{kaggle2_dir}/Player Shooting.csv')
-    advanced_df = pd.read_csv(f'{kaggle2_dir}/Advanced.csv')
-    player_per100poss_df = pd.read_csv(f'{kaggle2_dir}/Per 100 Poss.csv')
-    player_info_df = pd.read_csv(f'{kaggle1_dir}csv/common_player_info.csv')
+def clean_player_data_short(player_df: Union[pd.DataFrame, str],
+                            all_star_df: Union[pd.DataFrame, str],
+                            output_dir: str,
+                            filename: str = 'player_stats_short.csv') -> pd.DataFrame:
+    """
+    Combines and cleans scraped stathead player and allstar data into single dataframe and writes result to CSV
 
+    :param player_df: Path of CSV or DataFrame of raw stathead player data
+    :param all_star_df: Path of CSV or DataFrame of raw stathead all-star data
+    :param output_dir: Directory in which to save CSV
+    :param filename: Name of CSV file to save data to
+    :return: Cleaned dataframe
+    """
+
+    # Get DataFrames from CSVs if necessary
+    players = get_df(player_df)
+    all_stars = get_df(all_star_df)
+
+    # If a player in the all players DataFrame is an all star, set value in All Star column = True
+    all_stars = all_stars[['Player', 'Season']]
+    all_stars['All Star'] = True
+    df = pd.merge(players, all_stars, on=['Player', 'Season'], how='outer')
+
+    # Fill All Star column value for non-all-stars as False
+    df['All Star'] = df['All Star'].fillna(False)
+
+    # Write results
+    df.to_csv(f'{output_dir}/{filename}')
+
+    return df
+
+
+def process_player_data_long(kaggle1_dir: str,
+                             kaggle2_dir: str,
+                             output_dir: str,
+                             filename: str = 'player_data_aggregated.csv') -> pd.DataFrame:
+    """
+    Combines player data from kaggle. Writes results to CSV and returns DataFrame
+
+    :param kaggle1_dir: Path of directory containing kaggle data from 'wyattowalsh/basketball'
+    :param kaggle2_dir: Path of directory containing kaggle data from 'sumitrodatta/nba-aba-baa-stats'
+    :param output_dir: Directory in which to save CSV
+    :param filename: Name of CSV file to save data to
+    :return: Combined dataframe
+    """
+
+    # Paths of data from 'wyattowalsh/basketball'
+    player_info_path = f'{kaggle1_dir}csv/common_player_info.csv'
+
+    # Paths of data from 'sumitrodatta/nba-aba-baa-stats'
+    shooting_stats_path = f'{kaggle2_dir}/Player Shooting.csv'
+    advanced_stats_path = f'{kaggle2_dir}/Advanced.csv'
+    per100poss_stats_path = f'{kaggle2_dir}/Per 100 Poss.csv'
+
+    # Load all DataFrames
+    player_info_df = pd.read_csv(player_info_path)
+    player_shooting_df = pd.read_csv(shooting_stats_path)
+    advanced_df = pd.read_csv(advanced_stats_path)
+    player_per100poss_df = pd.read_csv(per100poss_stats_path)
+
+    # Combine DataFrames
     df = pd.merge(player_per100poss_df, player_shooting_df,
                   on='seas_id',
                   how='inner',
@@ -48,19 +125,31 @@ def process_player_data(kaggle1_dir, kaggle2_dir, output_dir):
                   how='inner',
                   suffixes=('', '_right'))
 
+    # Drop duplicate columns, as indicated by presence of suffix
     df = df.loc[:, ~df.columns.str.endswith('_right')]
 
-    df.to_csv(f'{output_dir}/player_data_aggregated.csv')
+    # Write results
+    df.to_csv(f'{output_dir}/{filename}')
+
+    return df
 
 
-def clean_player_data(df, output_dir):
-    if isinstance(df, pd.DataFrame):
-        pass
-    elif isinstance(df, str):
-        df = pd.read_csv(df)
-    else:
-        raise Exception('df must be a pandas DataFrame object or the path of a .csv')
+def clean_player_data_long(combined_df: Union[pd.DataFrame, str],
+                           output_dir: str,
+                           filename: str = 'player_data_clean.csv') -> pd.DataFrame:
+    """
+    Cleans combined player data from Kaggle and returns cleaned DataFrame
 
+    :param combined_df: Path of CSV or DataFrame of combined Kaggle player data
+    :param output_dir: Directory in which to save CSV
+    :param filename: Name of CSV file to save data to
+    :return: Cleaned DataFrame
+    """
+
+    # Get DataFrame from CSV if necessary
+    df = get_df(combined_df)
+
+    # Drop unnecessary columns
     df = df.drop(columns=['Unnamed: 0', 'birth_year', 'birthdate', 'display_first_last', 'display_last_comma_first',
                           'display_fi_last', 'player_slug', 'season_exp', 'games_played_current_season_flag',
                           'team_id', 'team_name', 'team_abbreviation', 'team_code', 'team_city', 'playercode',
@@ -87,6 +176,7 @@ def clean_player_data(df, output_dir):
     df['pos_PF'] = df['pos'].apply(lambda x: 'PF' in x)
     df['pos_SF'] = df['pos'].apply(lambda x: 'SF' in x)
     df['pos_C'] = df['pos'].apply(lambda x: 'C' in x)
+
     # Can remove 'pos' below if original categorical feature is wanted along with encoding
     df = df.drop(columns=['pos', 'lg', 'draft_year', 'rosterstatus'])
 
@@ -97,14 +187,25 @@ def clean_player_data(df, output_dir):
     df['height'] = (df['height_ft'] * 12) + df['height_in']
     df = df.drop(columns=['height_ft', 'height_in'])
 
-    df.to_csv(f'{output_dir}/processed/player_data_clean.csv')
+    # Write results
+    df.to_csv(f'{output_dir}/{filename}')
+
+    return df
 
 
 if __name__ == '__main__':
+    # Directories in which to save outputs
     interim_dir = 'data/interim'
     processed_dir = 'data/processed'
-    clean_team_stats('data/external/team_stats.csv', interim_dir)
-    process_player_data(kaggle1_dir='data/external/kaggle1',
-                        kaggle2_dir='data/external/kaggle2',
-                        output_dir=interim_dir)
-    clean_player_data('data/interim/player_data_aggregated.csv', processed_dir)
+
+    # Combine kaggle data into single player dataset
+    process_player_data_long(kaggle1_dir='data/external/kaggle1',
+                             kaggle2_dir='data/external/kaggle2',
+                             output_dir=interim_dir)
+
+    # Clean
+    clean_team_stats('data/external/team_stats.csv', processed_dir)
+    clean_player_data_long('data/interim/player_data_aggregated.csv', processed_dir)
+    clean_player_data_short('data/external/all_player_stats_00-24.csv',
+                            'data/external/allstar_stats_00-24.csv',
+                            processed_dir)
