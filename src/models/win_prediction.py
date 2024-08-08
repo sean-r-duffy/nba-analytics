@@ -1,29 +1,6 @@
 import joblib
 import json
 import pandas as pd
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
-from src.models.nn_search import get_nba_projection
-
-
-def get_df(player_df: pd.DataFrame, team_df: pd.DataFrame):
-    # Collect player df
-    if isinstance(player_df, pd.DataFrame):
-        df = player_df.copy()
-    elif isinstance(player_df, str):
-        df = pd.read_csv(player_df)
-    else:
-        raise Exception('player_df must be a pandas DataFrame object or the path of a .csv')
-
-    # Collect team df
-    if isinstance(team_df, pd.DataFrame):
-        team_df = team_df.copy()
-    elif isinstance(team_df, str):
-        team_df = pd.read_csv(team_df)
-    else:
-        raise Exception('team_df must be a pandas DataFrame object or the path of a .csv')
-
-    return player_df, team_df
 
 
 def weighted_avg(group, weight_col, stat_cols):
@@ -77,9 +54,7 @@ def agg_by_pos(team_stats, player_stats):
 
     merged_df.drop(columns=[field + '_df2' for field in player_metrics], inplace=True)
 
-    merged_df.to_csv('../../data/interim/player_stats_year_adjusted.csv', index=False)
-
-    df = pd.read_csv('../../data/interim/player_stats_year_adjusted.csv')
+    df = merged_df.copy()
 
     results = []
     position_columns = ['pos_PG', 'pos_SG', 'pos_PF', 'pos_SF', 'pos_C']
@@ -214,3 +189,8 @@ def calculate_top_players_ui(selected_team: str, available_players: list) -> dic
     predictions = predictions.to_dict()
 
     return predictions
+
+
+def fit_model():
+    # TODO: Scale features to get better feature importance
+    pass

@@ -23,45 +23,7 @@ def clean_team_stats(df, output_dir):
         df[f'{column}/G'] = df[column] / df['G']
         df = df.drop(columns=[column])
     df = df.rename(columns={'W/L%': 'W%'})
-    df.to_csv(f'{output_dir}/NBA_team_stats_1979-2024_clean.csv')
-
-    return df
-
-
-def clean_combine_data(df, output_dir):
-    if isinstance(df, pd.DataFrame):
-        pass
-    elif isinstance(df, str):
-        df = pd.read_csv(df)
-    else:
-        raise Exception('df must be a pandas DataFrame object or the path of a .csv')
-
-    def height_to_inches(height):
-        if pd.isnull(height):
-            return np.nan
-        parts = height.split("'")
-        feet = parts[0].strip()
-        inches = parts[1].replace('"', '').strip()
-        return int(feet) * 12 + float(inches)
-
-    df.replace('-', np.nan, inplace=True)
-    df.replace('-%', np.nan, inplace=True)
-    df['height_wo_shoes'] = df['height_wo_shoes'].apply(height_to_inches)
-    df['height_w_shoes'] = df['height_w_shoes'].apply(height_to_inches)
-    df['standing_reach'] = df['standing_reach'].apply(height_to_inches)
-    df['wingspan'] = df['wingspan'].apply(height_to_inches)
-    df["bodyfat%"] = df["bodyfat%"].str.replace("%", "").astype('float')
-
-    cols = ['bodyfat%', 'hand_len_in', 'hand_width_in',
-            'height_wo_shoes', 'height_w_shoes', 'standing_reach', 'weight_lbs',
-            'wingspan', 'lane_agility_s', 'shuttle_run_s', 'three_q_sprint_s',
-            'standing_vert_in', 'max_vert_in', 'max_bench_reps']
-
-    for col in cols:
-        df[col] = pd.to_numeric(df[col], errors='coerce')
-
-    df = df.dropna(subset=cols, how='all').reset_index(drop=True)
-    df.to_csv(f'{output_dir}/combine_stats_trimmed.csv')
+    df.to_csv(f'{output_dir}/team_stats_clean.csv')
 
     return df
 
@@ -141,8 +103,7 @@ def clean_player_data(df, output_dir):
 if __name__ == '__main__':
     interim_dir = 'data/interim'
     processed_dir = 'data/processed'
-    clean_team_stats('data/external/NBA_team_stats_1979-2024.csv', interim_dir)
-    clean_combine_data('data/external/NBA_combine_stats_2000-2024.csv', interim_dir)
+    clean_team_stats('data/external/team_stats.csv', interim_dir)
     process_player_data(kaggle1_dir='data/external/kaggle1',
                         kaggle2_dir='data/external/kaggle2',
                         output_dir=interim_dir)

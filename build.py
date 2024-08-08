@@ -8,12 +8,10 @@ processed_dir = f'{data_dir}/processed'
 # Loading
 load.scrape_stathead_players(external_dir)
 load.scrape_stathead_teams(external_dir)
-load.scrape_combine(external_dir)
 load.download_kaggle_sets(external_dir)
 
 # Cleaning
-clean.clean_team_stats('data/external/NBA_team_stats_1979-2024.csv', interim_dir)
-clean.clean_combine_data('data/external/NBA_combine_stats_2000-2024.csv', interim_dir)
+clean.clean_team_stats('data/external/team_stats.csv', interim_dir)
 clean.process_player_data(kaggle1_dir='data/external/kaggle1',
                           kaggle2_dir='data/external/kaggle2',
                           output_dir=interim_dir)

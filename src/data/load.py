@@ -193,44 +193,7 @@ def scrape_stathead_teams(output_dir):
         driver.quit()
 
 
-def scrape_combine(output_dir):
-    years = ['2000-01', '2001-02', '2002-03', '2003-04', '2004-05', '2005-06',
-             '2006-07', '2007-08', '2008-09', '2009-10', '2010-11', '2011-12',
-             '2012-13', '2013-14', '2014-15', '2015-16', '2016-17', '2017-18',
-             '2018-19', '2019-20', '2020-21', '2021-22', '2022-23', '2023-24', '2024-25']
-
-    driver = webdriver.Chrome()
-    # table_cols = ['player', 'pos', 'bodyfat%', 'hand_len_in', 'hand_width_in', 'height_wo_shoes', 'height_w_shoes', 'standing_reach', 'weight_lbs', 'wingspan', 'year']
-    table_cols = ['player', 'pos', 'lane_agility_s', 'shuttle_run_s', 'three_q_sprint_s', 'standing_vert_in',
-                  'max_vert_in', 'max_bench_reps', 'year']
-    df = pd.DataFrame(columns=table_cols)
-
-    for year in years:
-        # url = f'https://www.nba.com/stats/draft/combine-anthro?SeasonYear={year}'
-        url = f'https://www.nba.com/stats/draft/combine-strength-agility?SeasonYear={year}'
-        try:
-            driver.get(url)
-            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "tr")))
-            soup = BeautifulSoup(driver.page_source, 'html.parser')
-            rows = soup.find('tbody').find_all('tr')
-            for row in rows:
-                row_data = []
-                cells = row.find_all('td')
-                for cell in cells:
-                    row_data.append(cell.get_text(strip=True))
-                row_data.append(year)
-                if len(row_data) == len(table_cols):  # Ensure row data matches column count
-                    df.loc[len(df)] = row_data
-                else:
-                    print(f"Skipping row due to mismatch in column count: {row_data}")
-        except Exception as e:
-            print(f"Error with year {year}\n{e}")
-        time.sleep(1)
-
-    driver.quit()
-    df.to_csv(f'{output_dir}/NBA_combine_stats_2000-2024.csv', index=False)
-
-
+# TODO: Keep only necessary files
 def download_kaggle_sets(output_dir):
     kaggle_api = KaggleApi()
     kaggle_api.authenticate()
@@ -239,6 +202,26 @@ def download_kaggle_sets(output_dir):
     dataset_2 = 'sumitrodatta/nba-aba-baa-stats'
     kaggle_api.dataset_download_files(dataset_1, path=f'{output_dir}/kaggle1', unzip=True)
     kaggle_api.dataset_download_files(dataset_2, path=f'{output_dir}/kaggle2', unzip=True)
+
+
+def get_df(player_df: pd.DataFrame, team_df: pd.DataFrame):
+    # Collect player df
+    if isinstance(player_df, pd.DataFrame):
+        df = player_df.copy()
+    elif isinstance(player_df, str):
+        df = pd.read_csv(player_df)
+    else:
+        raise Exception('player_df must be a pandas DataFrame object or the path of a .csv')
+
+    # Collect team df
+    if isinstance(team_df, pd.DataFrame):
+        team_df = team_df.copy()
+    elif isinstance(team_df, str):
+        team_df = pd.read_csv(team_df)
+    else:
+        raise Exception('team_df must be a pandas DataFrame object or the path of a .csv')
+
+    return player_df, team_df
 
 
 if __name__ == '__main__':
