@@ -228,7 +228,6 @@ if __name__ == '__main__':
     directory = 'data/external'
     scrape_stathead_players(directory)
     scrape_stathead_teams(directory)
-    scrape_combine(directory)
     download_kaggle_sets(directory)
     
     directory = 'data/interim'
