@@ -4,7 +4,7 @@ from sklearn.preprocessing import MinMaxScaler
 from math import pi
 
 def make_radar_plot(name):
-    with open("../../data/processed/rookie_stats_raw.csv", 'r') as f1:
+    with open("data/processed/rookie_stats.csv", 'r') as f1:
         df = pd.read_csv(f1, index_col="Player")
     df = df.drop(["Pos"], axis=1)
     df["REB"] = df["ORB"] + df ["DRB"]

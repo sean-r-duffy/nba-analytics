@@ -86,7 +86,7 @@ def agg_by_pos(team_stats, player_stats):
     final_df = final_df.dropna(subset=['W/L%'])
     final_df = final_df.dropna()
 
-    final_df.to_csv('../../data/interim/NBA_team_player_stats_Weight_Average.csv', index=False)
+    final_df.to_csv('../../data/processed/roster_stats.csv', index=False)
 
     return final_df
 
@@ -169,20 +169,20 @@ def predict_win_percentages(potential_rosters_df: pd.DataFrame, model_path):
 def calculate_top_players_ui(selected_team: str, available_players: list) -> dict:
 
     # Team Mappings
-    with open('../../data/processed/team_abbr_mapping.json', 'r') as file:
+    with open('data/processed/team_abbr_mapping.json', 'r') as file:
         mappings = json.load(file)
     team = mappings[selected_team]
 
     # Loading dataframes
-    projections_df = pd.read_csv('../../data/processed/rookie_projection_stats.csv')
-    last_season_df = pd.read_csv('../../data/interim/NBA_team_player_stats_WA_current_year.csv')
+    projections_df = pd.read_csv('data/processed/rookie_projection_stats.csv')
+    last_season_df = pd.read_csv('data/processed/roster_stats_2024.csv')
 
     # Filtering for available players
     projections_df = projections_df[projections_df['player'].isin(available_players)]
 
     # Make predictions
     potential_rosters_df = create_potential_rosters(projections_df, last_season_df, team)
-    predictions = predict_win_percentages(potential_rosters_df, '../../models/win_prediction.pkl')
+    predictions = predict_win_percentages(potential_rosters_df, 'models/win_prediction.pkl')
 
     # Convert to dictionary
     predictions = predictions.groupby(by='player').max().sort_values('win%', ascending=False).reset_index().head(10)

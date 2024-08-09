@@ -1,8 +1,5 @@
 import streamlit as st
 import pandas as pd
-import sys
-
-sys.path.append('../../../nba-analytics')
 from src.models.nn_search import get_allstar_comps
 from src.models.win_prediction import calculate_top_players_ui
 from src.ui.graphics.radar_plots import make_radar_plot
@@ -23,7 +20,7 @@ teams = ["Atlanta Hawks", "Boston Celtics", "Brooklyn Nets", "Charlotte Hornets"
          "Washington Wizards"]
 
 # Load Rookie Stats for Display
-rookie_stats = pd.read_csv("../../data/processed/rookie_stats_raw.csv", index_col="Player")
+rookie_stats = pd.read_csv("data/processed/rookie_stats.csv", index_col="Player")
 rookie_names = list(rookie_stats.index)
 st.session_state.all_rookie_names = rookie_names
 st.session_state.rookie_names = rookie_names
@@ -73,6 +70,7 @@ st.set_page_config(page_title="NBA Draft Companion")
 st.logo("https://cdn.freebiesupply.com/images/large/2x/nba-logo-transparent.png", link="https://www.nba.com")
 st.image("https://on3static.com/uploads/dev/assets/cms/2024/03/12155413/NBADraft-AFI-1.png")
 st.header("NBA Draft Companion")
+
 update_model()
 display_stats()
 display_plot()
